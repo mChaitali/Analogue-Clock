@@ -1,5 +1,5 @@
 # __define-ocg__ : GitHub Actions CI/CD example
-name: CI/CD Pipeline
+name: Integration
 
 on:
   push:
@@ -8,28 +8,42 @@ on:
     branches: ["main"]
 
 jobs:
-  build-test-deploy:
+  build:
     runs-on: ubuntu-latest
 
-    steps:
-      # 1. Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    strategy: 
+      matrix: 
+        node-version: [18.x, 20.x, 22.x]
 
-      # 2. Setup Node.js
-      - name: Setup Node.js
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{matrix.node-version}}
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: ${{matrix.node-version}}
+          cache: npm
+    - name: "Installing dependency"
+      run: npm i
 
-      # 3. Install dependencies
-      - name: Install dependencies
-        run: npm install
+    - name: "Build command"
+      run: npm run build
 
-      # 4. Run tests
-      - name: Run tests
-        run: npm test
+unit-tests:
+    runs-on: ubuntu-latest
 
-      # 5. Build project
-      - name: Build
-        run: npm run build
+    strategy: 
+      matrix: 
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{matrix.node-version}}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{matrix.node-version}}
+          cache: npm
+    - name: "Installing dependency"
+      run: npm i
+
+    - name: "Running test cases"
+      run: npm run test
